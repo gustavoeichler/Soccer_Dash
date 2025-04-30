@@ -120,9 +120,17 @@ def dashboard():
     df = st.session_state['data']
 
     st.header("🔎 Filtros")
+    st.write("Use os filtros abaixo para selecionar os dados que deseja visualizar.")
 
     # Filters
-    selected_session = st.multiselect("Sessão (Data da Sessão)", options=df['Data da Sessão'].unique())
+    if 'Data da Sessão'  in df.columns:
+        key = 'Data da Sessão'
+        selected_session = st.multiselect("Sessão (Data da Sessão)", options=df['Data da Sessão'].unique())
+    else:
+        key = 'Sessão'
+        selected_session = st.multiselect("Sessão", options=df['Sessão'].unique())
+
+    
     selected_momento = st.multiselect("Momento", options=df['Momento'].unique())
     selected_submomento = st.multiselect("Submomento", options=df['Submomento'].unique())
     selected_pos_neg = st.multiselect("Positivo ou Negativo", options=df['Positivo ou Negativo'].unique())
@@ -130,7 +138,7 @@ def dashboard():
     # Apply filters
     filtered_df = df.copy()
     if selected_session:
-        filtered_df = filtered_df[filtered_df['Data da Sessão'].isin(selected_session)]
+        filtered_df = filtered_df[filtered_df[key].isin(selected_session)]
     if selected_momento:
         filtered_df = filtered_df[filtered_df['Momento'].isin(selected_momento)]
     if selected_submomento:
@@ -143,6 +151,10 @@ def dashboard():
     
 
     st.title("Dashboard Interativo com Plotly")
+    # add a paragraph to explain how to use the dashboard
+    
+    st.write("Os gráficos abaixo mostram a distribuição dos dados filtrados.")
+
 
     # Select categorical columns
     categorical_cols = filtered_df.select_dtypes(include=['category']).columns.tolist()
@@ -152,16 +164,20 @@ def dashboard():
     #     fig = px.histogram(df, x=col, color=col, text_auto=True)
     #     st.plotly_chart(fig, use_container_width=True)
 
-    tabs = st.tabs(categorical_cols)
+    
+    if len(categorical_cols) > 0:
+        tabs = st.tabs(categorical_cols)
 
-    for tab, category in zip(tabs, categorical_cols):
-        with tab:
-            st.subheader(f"Frequência de '{category}'")
-            fig = px.histogram(filtered_df, x=category, color=category, text_auto=True)
-            st.plotly_chart(fig, use_container_width=True, key=f"chart_{category}")
+        for tab, category in zip(tabs, categorical_cols):
+            with tab:
+                st.subheader(f"Frequência de '{category}'")
+                fig = px.histogram(filtered_df, x=category, color=category, text_auto=True)
+                st.plotly_chart(fig, use_container_width=True, key=f"chart_{category}")
 
 
     st.title("Dashboard Interativo com Gráfico de Barras Agrupado")
+    # explain how to use the stacked bar chart
+    st.write("Selecione as colunas para o eixo X e para agrupar (cor). O gráfico de barras será exibido abaixo.")
 
     # Get only categorical columns
     categorical_cols = filtered_df.select_dtypes(include=['category']).columns.tolist()
@@ -178,6 +194,8 @@ def dashboard():
             barmode='group',  # THIS makes it grouped instead of stacked
             text_auto=True,
         )
+        # update hove to portuguese
+        fig.update_traces(hovertemplate=f'{x_axis}: %{{x}}<br>Contagem: %{{y}}')
         fig.update_layout(
             xaxis_title=x_axis,
             yaxis_title="Contagem",
@@ -186,24 +204,37 @@ def dashboard():
         st.plotly_chart(fig, use_container_width=True)
 
 
-    st.header("🔥 Performance by Moment/Submoment")
+    st.header("🔥 Ações Positivas por Momento e Submomento")
+    # explain how to use the heatmap
+    st.write("O gráfico de calor abaixo mostra a contagem de ações positivas por Momento e Submomento.")
 
     # Count Positives per Moment/Submoment
     df_moment = filtered_df[filtered_df['Positivo ou Negativo'] == 'Positivo'].groupby(['Momento', 'Submomento']).size().reset_index(name='Positive Count')
 
     fig_heatmap = px.density_heatmap(df_moment, x='Momento', y='Submomento', z='Positive Count',
-                                    color_continuous_scale='Blues',
+                                    color_continuous_scale='Reds',
                                     title='Positive Actions Heatmap')
+    # add black lines between the cells
+    fig_heatmap.update_traces(showscale=False, hoverinfo='none')
+    fig_heatmap.update_traces(hovertemplate='Momento: %{x}<br>Submomento: %{y}<br>Contagem: %{z}')
+    
+    fig_heatmap.update_layout(xaxis_showgrid=True, yaxis_showgrid=True)
 
     st.plotly_chart(fig_heatmap)
 
-    st.header("Positive vs Negative Actions")
+    st.header("Ações Positivas vs Negativas")
+    # explain how to use the pie chart
+    st.write("O gráfico de pizza abaixo mostra a distribuição de ações positivas e negativas.")
 
     df_pie = filtered_df['Positivo ou Negativo'].value_counts().reset_index()
     df_pie.columns = ['Label', 'Count']
 
     fig_pie = px.pie(df_pie, names='Label', values='Count', title='Positive vs Negative Distribution',
                     color_discrete_sequence=px.colors.sequential.RdBu)
+    fig_pie.update_traces(hovertemplate='Ação: %{label}<br>Contagem: %{value}')
+    fig_pie.update_layout(showlegend=True, legend_title_text='Ação')
+    fig_pie.update_traces(textposition='inside', textinfo='percent+label')
+    
 
     st.plotly_chart(fig_pie)
  
