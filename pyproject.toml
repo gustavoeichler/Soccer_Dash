@@ -3,7 +3,7 @@ name = "soccer-dash"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.12"
 
 [tool.poetry]
 name = "soccer-dash"
@@ -21,6 +21,9 @@ pandas = ">=2.2.3"
 plotly = ">=6.0.1"
 seaborn = ">=0.13.2"
 streamlit = ">=1.44.1"
+pillow = "^11.2.1"
+streamlit-aggrid = "^1.1.4.post1"
+wordcloud = "^1.9.4"
 
 [build-system]
 requires = ["poetry-core"]
