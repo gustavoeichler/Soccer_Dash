@@ -1,0 +1,15 @@
+{
+"version": "0.1.0",
+"configurations": [
+    {
+        "name": "debug streamlit",
+        "type": "python",
+        "request": "launch",
+        "program": "C:\\Users\\guga_\\source\\Soccer_Dash\\.venv\\Lib\\site-packages\\streamlit",  // /home/xx/tmp/venv/bin/streamlit",
+        "args": [
+            "run",
+            "app.py"
+        ]
+    }
+]
+}
