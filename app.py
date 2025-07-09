@@ -21,7 +21,10 @@ def login():
     st.title("Login")
 
     # Check existing session
-    token = st.context.cookies.to_dict()['access_token']
+    try:
+        token = st.context.cookies.to_dict()['access_token']
+    except Exception as e:
+        token = None
     if token:
         try:
             response = requests.post(f"{API_BASE_URL}/dashboard-auth", json={"token": token})
