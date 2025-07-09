@@ -48,10 +48,17 @@ def login():
             return
 
         try:
-            response = requests.post(f"{API_BASE_URL}/login", json={
-                "username": username,
-                "password": password
-            })
+            # Send form data instead of JSON
+            response = requests.post(
+                f"{API_BASE_URL}/login",
+                data={  # Not json=
+                    "username": username,
+                    "password": password
+                },
+                headers={
+                    "Content-Type": "application/x-www-form-urlencoded"
+                }
+            )
 
             if response.status_code == 200:
                 data = response.json()
